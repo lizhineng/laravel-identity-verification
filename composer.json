@@ -1,0 +1,27 @@
+{
+    "name": "lizhineng/laravel-identity-verification",
+    "description": "Identity verification with Aliyun for Laravel.",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Li Zhineng",
+            "email": "im@zhineng.li"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "LiZhineng\\IdentityVerification\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "LiZhineng\\IdentityVerification\\Tests": "tests"
+    },
+    "require": {
+        "alibabacloud/cloudauth": "^1.8"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9",
+        "orchestra/testbench": "^5.2"
+    }
+}
