@@ -5,7 +5,7 @@ namespace LiZhineng\IdentityVerification\Tests;
 use Illuminate\Support\Str;
 use LiZhineng\IdentityVerification\VerifyIdentity;
 
-class VerifyIdentityTest extends UnitTest
+class VerifyIdentityTest extends FeatureTest
 {
     public function testItWorks()
     {

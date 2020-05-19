@@ -25,6 +25,8 @@
         </whitelist>
     </filter>
     <php>
-        <server name="REDIS_CLIENT" value="predis"/>
+        <env name="IDENTITY_VERIFICATION_ACCESS_KEY_ID" value="fake-id"/>
+        <env name="IDENTITY_VERIFICATION_ACCESS_KEY_SECRET" value="fake-secret"/>
+        <env name="IDENTITY_VERIFICATION_REGION" value="fake-region"/>
     </php>
 </phpunit>
