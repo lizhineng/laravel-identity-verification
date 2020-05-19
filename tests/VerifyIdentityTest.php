@@ -2,24 +2,34 @@
 
 namespace LiZhineng\IdentityVerification\Tests;
 
-use Illuminate\Foundation\Auth\User;
+use Illuminate\Support\Str;
 use LiZhineng\IdentityVerification\VerifyIdentity;
-use Mockery;
 
 class VerifyIdentityTest extends UnitTest
 {
     public function testItWorks()
     {
         VerifyIdentity::manually()
+            ->in('registration')
             ->for($this->user())
+            ->uuid(Str::uuid())
             ->name('Zhineng')
             ->idNumber('000')
             ->portrait('fake-photo-path')
             ->verify();
     }
 
-    protected function user()
+    public function testSupportsOCR()
     {
-        return Mockery::mock(User::class);
+        VerifyIdentity::manually()
+            ->in('registration')
+            ->for($this->user())
+            ->uuid(Str::uuid())
+            ->name('Zhineng')
+            ->idNumber('000')
+            ->portrait('fake-photo-path')
+            ->idCardPortrait('fake-id-card-portrait-path')
+            ->idCardEmblem('fake-id-card-emblem-path')
+            ->verify();
     }
 }
