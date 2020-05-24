@@ -9,8 +9,18 @@ class IdentityVerificationServiceProvider extends ServiceProvider
 {
     public function boot()
     {
+        $this->registerMigrations();
         $this->registerPublishing();
         $this->registerAliyunClient();
+    }
+
+    protected function registerMigrations()
+    {
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        $this->loadMigrationsFrom(__DIR__.'/../migrations');
     }
 
     protected function registerPublishing()
@@ -18,6 +28,10 @@ class IdentityVerificationServiceProvider extends ServiceProvider
         if (! $this->app->runningInConsole()) {
             return;
         }
+
+        $this->publishes([
+            __DIR__.'/../migrations' => database_path('migrations'),
+        ], 'identity-verification-migrations');
 
         $this->publishes([
             __DIR__.'/../config/identity-verification.php' => config_path('identity-verification.php'),

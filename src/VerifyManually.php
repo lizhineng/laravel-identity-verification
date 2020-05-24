@@ -164,7 +164,7 @@ class VerifyManually
      */
     public function verify()
     {
-        return AlibabaCloud::rpc()
+        $result = AlibabaCloud::rpc()
             ->client('identity-verification')
             ->product('Cloudauth')
             ->version('2019-03-07')
@@ -183,5 +183,23 @@ class VerifyManually
                 ],
             ])
             ->request();
+
+        $this->persist($result);
+
+        return $result;
+    }
+
+    protected function persist($result)
+    {
+        $data = $result->toArray();
+
+        /** @var IdentityVerification $verification */
+        $verification = IdentityVerification::newFromApiResult($data);
+        $verification->uuid = $this->uuid;
+        $verification->scene = $this->scene;
+        $verification->auth()->associate($this->user);
+        $verification->save();
+
+        return $verification;
     }
 }
