@@ -17,9 +17,9 @@ class VerifyManually
     /**
      * The sense to verify identity.
      *
-     * @var string $sense
+     * @var string $scene
      */
-    protected string $sense;
+    protected string $scene;
 
     /**
      * The uuid of the verification task.
@@ -77,14 +77,14 @@ class VerifyManually
     }
 
     /**
-     * Set the current sense to verify identity.
+     * Set the current scene to verify identity.
      *
-     * @param  string  $sense
+     * @param  string  $scene
      * @return $this
      */
-    public function in(string $sense)
+    public function in(string $scene)
     {
-        $this->sense = $sense;
+        $this->scene = $scene;
 
         return $this;
     }
@@ -174,7 +174,7 @@ class VerifyManually
             ->options([
                 'query' => [
                     'FaceImageUrl' => $this->portrait,
-                    'BizType' => $this->sense,
+                    'BizType' => $this->scene,
                     'BizId' => $this->uuid,
                     'Name' => $this->name,
                     'IdCardNumber' => $this->idNumber,
