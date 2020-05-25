@@ -5,6 +5,7 @@ namespace LiZhineng\IdentityVerification;
 use AlibabaCloud\Client\AlibabaCloud;
 use AlibabaCloud\Client\Result\Result;
 use Illuminate\Foundation\Auth\User;
+use LiZhineng\IdentityVerification\Exceptions\OnlyDraftCanBeRecovered;
 
 class VerifyManually
 {
@@ -72,6 +73,13 @@ class VerifyManually
     protected ?int $limit = null;
 
     /**
+     * The draft which recovered from.
+     *
+     * @var int $draftId
+     */
+    protected ?int $draftId = null;
+
+    /**
      * Verify for the given user.
      *
      * @param  User  $user
@@ -80,6 +88,21 @@ class VerifyManually
     public function for(User $user)
     {
         $this->user = $user;
+
+        return $this;
+    }
+
+    public function from(IdentityVerification $draft)
+    {
+        throw_if(! $draft->pending(), OnlyDraftCanBeRecovered::class, 'The draft you want to recover from is not in pending status.');
+
+        $this->scene = $draft->scene;
+        $this->uuid = $draft->uuid;
+        $this->name = $draft->name;
+        $this->user = $draft->auth;
+        $this->idNumber = $draft->id_number;
+        $this->portrait = $draft->portrait_path;
+        $this->draftId = $draft->id;
 
         return $this;
     }
@@ -217,11 +240,41 @@ class VerifyManually
         return $this->persist($result);
     }
 
+    /**
+     * Determine if it should verify identity automatically.
+     *
+     * @return bool
+     */
     public function shouldAutoVerify()
     {
-        return is_null($this->limit) || $this->failedCount() < $this->limit;
+        return $this->isRecoveredFromDraft() || ! $this->beyondLimit();
     }
 
+    /**
+     * Determine if the user is beyond the automatic verify limit.
+     *
+     * @return bool
+     */
+    public function beyondLimit()
+    {
+        return ! is_null($this->limit) && $this->failedCount() >= $this->limit;
+    }
+
+    /**
+     * Determine the task is recovered from draft.
+     *
+     * @return bool
+     */
+    public function isRecoveredFromDraft()
+    {
+        return (bool) $this->draftId;
+    }
+
+    /**
+     * The retry time of verifying identity.
+     *
+     * @return int
+     */
     public function failedCount()
     {
         return IdentityVerification::failed()
@@ -238,16 +291,25 @@ class VerifyManually
      */
     protected function persist(Result $result)
     {
-        $data = $result->toArray();
+        return tap($this->verification()->fillFromApiResult($result))->save();
+    }
 
-        /** @var IdentityVerification $verification */
-        $verification = IdentityVerification::newFromApiResult($data);
-        $verification->uuid = $this->uuid;
-        $verification->scene = $this->scene;
-        $verification->auth()->associate($this->user);
-        $verification->save();
+    /**
+     * Build up or retrieve an identity verification record.
+     *
+     * @return IdentityVerification
+     */
+    protected function verification()
+    {
+        if ($this->isRecoveredFromDraft()) {
+            return IdentityVerification::find($this->draftId);
+        }
 
-        return $verification;
+        return tap(new IdentityVerification, function (IdentityVerification $verification) {
+            $verification->auth()->associate($this->user);
+            $verification->scene = $this->scene;
+            $verification->uuid = $this->uuid;
+        });
     }
 
     /**
