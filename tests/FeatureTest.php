@@ -6,23 +6,24 @@ use AlibabaCloud\Client\AlibabaCloud;
 use Illuminate\Foundation\Auth\User;
 use LiZhineng\IdentityVerification\IdentityVerificationServiceProvider;
 use Orchestra\Testbench\TestCase;
-use Mockery;
 
 abstract class FeatureTest extends TestCase
 {
+    protected User $user;
+
     public function setUp(): void
     {
         parent::setUp();
 
-        $this->artisan('migrate')->run();
-    }
+        $this->loadLaravelMigrations();
 
-    protected function user()
-    {
-        return Mockery::mock(User::class, function ($user) {
-            $user->shouldReceive('getKey')->andReturn(1);
-            $user->shouldReceive('getMorphClass')->andReturn(User::class);
-        });
+        $this->user = User::forceCreate([
+            'email' => 'testing@example.org',
+            'name' => 'Testing',
+            'password' => '$2y$10$E4BoLxKS61MkkrWKl5RTNeJPErqT0DNbvVTEblk05kAC5UAmfyGCK', // password
+        ]);
+
+        $this->artisan('migrate')->run();
     }
 
     protected function mockResponse()

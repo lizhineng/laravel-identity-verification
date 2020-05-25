@@ -20,9 +20,11 @@ class CreateIdentityVerificationsTable extends Migration
             $table->string('id_card_emblem_path')->nullable();
             $table->json('id_card')->nullable();
             $table->unsignedSmallInteger('status');
-            $table->unsignedInteger('authority_comparision_score');
+            $table->unsignedSmallInteger('verify_status')->nullable();
+            $table->unsignedInteger('authority_comparision_score')->nullable();
             $table->unsignedInteger('portrait_comparision_score')->nullable();
             $table->unsignedInteger('id_card_portrait_comparision_score')->nullable();
+            $table->timestamp('verified_at')->nullable();
             $table->timestamps();
 
             $table->index('scene');

@@ -11,25 +11,32 @@ class VerifyIdentityTest extends FeatureTest
 {
     public function testItWorks()
     {
-        $this->assertTrue($this->mockResponse()->verify()->isSuccess());
+        $this->assertTrue($this->mockResponse()->verification()->verify()->passed());
     }
 
     public function testStoreRecord()
     {
-        $this->mockResponse()->verify();
+        $this->mockResponse()->verification()->verify();
 
         $this->assertEquals(1, IdentityVerification::count());
     }
 
-    protected function verify()
+    public function testHasLimit()
+    {
+        $verification = $this->verification()->limit(0)->verify();
+
+        $this->assertTrue($verification->pending());
+        $this->assertNull($verification->verified_at);
+    }
+
+    protected function verification()
     {
         return VerifyIdentity::manually()
             ->in('registration')
-            ->for($this->user())
+            ->for($this->user)
             ->uuid(Str::uuid())
-            ->name('Zhineng')
+            ->name('Testing')
             ->idNumber('000')
-            ->portrait('fake-photo-path')
-            ->verify();
+            ->portrait('fake-photo-path');
     }
 }

@@ -3,6 +3,7 @@
 namespace LiZhineng\IdentityVerification;
 
 use AlibabaCloud\Client\AlibabaCloud;
+use AlibabaCloud\Client\Result\Result;
 use Illuminate\Foundation\Auth\User;
 
 class VerifyManually
@@ -62,6 +63,13 @@ class VerifyManually
      * @var string $idCardEmblemPath
      */
     protected string $idCardEmblemPath;
+
+    /**
+     * Throttle to limit the automatic verification.
+     *
+     * @var int|null $limit
+     */
+    protected ?int $limit = null;
 
     /**
      * Verify for the given user.
@@ -156,13 +164,35 @@ class VerifyManually
     }
 
     /**
+     * Limit the automatic verification.
+     *
+     * @param  int  $limit
+     * @return $this
+     */
+    public function limit(int $limit)
+    {
+        $this->limit = $limit;
+
+        return $this;
+    }
+
+    /**
      * Verify the given data.
      *
-     * @return \AlibabaCloud\Client\Result\Result
+     * @return IdentityVerification
      * @throws \AlibabaCloud\Client\Exception\ClientException
      * @throws \AlibabaCloud\Client\Exception\ServerException
      */
     public function verify()
+    {
+        if ($this->shouldAutoVerify()) {
+            return $this->verifyFromApi();
+        }
+
+        return IdentityVerification::createFromDraft($this);
+    }
+
+    public function verifyFromApi()
     {
         $result = AlibabaCloud::rpc()
             ->client('identity-verification')
@@ -184,12 +214,29 @@ class VerifyManually
             ])
             ->request();
 
-        $this->persist($result);
-
-        return $result;
+        return $this->persist($result);
     }
 
-    protected function persist($result)
+    public function shouldAutoVerify()
+    {
+        return is_null($this->limit) || $this->failedCount() < $this->limit;
+    }
+
+    public function failedCount()
+    {
+        return IdentityVerification::failed()
+            ->scene($this->scene)
+            ->whereHasMorph('auth', [get_class($this->user)], fn ($query) => $query->where('id', $this->user->getKey()))
+            ->count();
+    }
+
+    /**
+     * Persist the verification result to database.
+     *
+     * @param  Result  $result
+     * @return IdentityVerification
+     */
+    protected function persist(Result $result)
     {
         $data = $result->toArray();
 
@@ -201,5 +248,20 @@ class VerifyManually
         $verification->save();
 
         return $verification;
+    }
+
+    /**
+     * Dynamically retrieve attributes on the verification.
+     *
+     * @param  string  $name
+     * @return mixed
+     */
+    public function __get($name)
+    {
+        if (isset($this->$name)) {
+            return $this->$name;
+        }
+
+        return null;
     }
 }
