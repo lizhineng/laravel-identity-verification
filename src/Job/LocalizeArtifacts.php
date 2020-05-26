@@ -1,0 +1,82 @@
+<?php
+
+namespace LiZhineng\IdentityVerification\Job;
+
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Support\Facades\Storage;
+use LiZhineng\IdentityVerification\Artifact;
+use LiZhineng\IdentityVerification\Exceptions\UnreachableUrl;
+use LiZhineng\IdentityVerification\IdentityVerification;
+
+class LocalizeArtifacts
+{
+    use Dispatchable;
+
+    /**
+     * The model of identity verification.
+     *
+     * @var IdentityVerification $verification
+     */
+    protected IdentityVerification $verification;
+
+    public function __construct(IdentityVerification $verification)
+    {
+        $this->verification = $verification;
+    }
+
+    public function handle()
+    {
+        try {
+            $this->localize();
+        } catch (UnreachableUrl $e) {
+            $this->clearUp();
+        }
+    }
+
+    /**
+     * The artifact paths which needs to be localized.
+     *
+     * @return string[]
+     */
+    protected function fields()
+    {
+        return [
+            'portrait_path',
+            'id_card_portrait_path',
+            'id_card_emblem_path',
+        ];
+    }
+
+    protected function localize(): void
+    {
+        $disk = config('identity-verification.disk');
+        $path = config('identity-verification.path');
+
+        foreach ($this->fields() as $field) {
+            if (! $this->verification->$field) {
+                continue;
+            }
+
+            $artifact = Artifact::make($this->verification->$field);
+
+            if ($artifact->shouldLocalize()) {
+                $this->verification->$field = $artifact->localize($disk, $path)->path();
+            }
+        }
+
+        if ($this->verification->isDirty($this->fields())) {
+            $this->verification->save();
+        }
+    }
+
+    public function clearUp()
+    {
+        $disk = config('identity-verification.disk');
+
+        foreach ($this->fields() as $field) {
+            if ($this->verification->$field) {
+                Storage::disk($disk)->delete($this->verification->$field);
+            }
+        }
+    }
+}

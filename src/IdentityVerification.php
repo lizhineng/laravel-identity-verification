@@ -43,8 +43,10 @@ class IdentityVerification extends Model
     {
         $this->name = Arr::get($result, 'Material.IdCardName');
         $this->id_number = Arr::get($result, 'Material.IdCardNumber');
-        $this->id_card = Arr::get($result, 'Material.IdCardInfo');
+        $this->id_card = IdCard::make(Arr::get($result, 'Material.IdCardInfo'))->toArray();
         $this->portrait_path = Arr::get($result, 'Material.FaceImageUrl');
+        $this->id_card_portrait_path = Arr::get($this->id_card, 'id_card_portrait_path');
+        $this->id_card_emblem_path = Arr::get($this->id_card, 'id_card_emblem_path');
         $this->verify_status = Arr::get($result, 'VerifyStatus');
         $this->status = IdentityVerificationStatus::fromVerifyStatus($this->verify_status);
         $this->authority_comparision_score = Arr::get($result, 'AuthorityComparisonScore');

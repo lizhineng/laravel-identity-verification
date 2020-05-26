@@ -4,8 +4,11 @@ namespace LiZhineng\IdentityVerification;
 
 use AlibabaCloud\Client\AlibabaCloud;
 use AlibabaCloud\Client\Result\Result;
+use Illuminate\Bus\Dispatcher;
 use Illuminate\Foundation\Auth\User;
 use LiZhineng\IdentityVerification\Exceptions\OnlyDraftCanBeRecovered;
+use LiZhineng\IdentityVerification\Job\LocalizeArtifacts;
+use function foo\func;
 
 class VerifyManually
 {
@@ -209,7 +212,7 @@ class VerifyManually
     public function verify()
     {
         if ($this->shouldAutoVerify()) {
-            return $this->verifyFromApi();
+            return tap($this->verifyFromApi(), fn ($verification) => LocalizeArtifacts::dispatch($verification));
         }
 
         return IdentityVerification::createFromDraft($this);

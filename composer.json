@@ -15,7 +15,9 @@
         }
     },
     "autoload-dev": {
-        "LiZhineng\\IdentityVerification\\Tests": "tests"
+        "psr-4": {
+            "LiZhineng\\IdentityVerification\\Tests\\": "tests"
+        }
     },
     "require": {
         "alibabacloud/cloudauth": "^1.8"

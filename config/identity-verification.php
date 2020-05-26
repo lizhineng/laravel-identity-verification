@@ -16,4 +16,14 @@ return [
      */
     'region' => env('IDENTITY_VERIFICATION_REGION'),
 
+    /**
+     * The disk which stores identity verification photos.
+     */
+    'disk' => 'public',
+
+    /**
+     * The path which stores identity verification photos.
+     */
+    'path' => '/',
+
 ];

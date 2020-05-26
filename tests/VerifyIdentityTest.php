@@ -2,13 +2,18 @@
 
 namespace LiZhineng\IdentityVerification\Tests;
 
+use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use LiZhineng\IdentityVerification\Exceptions\OnlyDraftCanBeRecovered;
 use LiZhineng\IdentityVerification\IdentityVerification;
+use LiZhineng\IdentityVerification\Job\LocalizeArtifacts;
 use LiZhineng\IdentityVerification\VerifyIdentity;
 
 class VerifyIdentityTest extends FeatureTest
 {
+    use VerifyIdentityManually;
+
     public function testItWorks()
     {
         $this->assertTrue($this->mockResponse()->verification()->verify()->passed());
@@ -49,14 +54,12 @@ class VerifyIdentityTest extends FeatureTest
         VerifyIdentity::manually()->from($verification);
     }
 
-    protected function verification()
+    public function testLocalizeArtifacts()
     {
-        return VerifyIdentity::manually()
-            ->in('registration')
-            ->for($this->user)
-            ->uuid(Str::uuid())
-            ->name('Testing')
-            ->idNumber('000')
-            ->portrait('fake-photo-path');
+        Bus::fake();
+
+        $this->mockResponse()->verification()->verify();
+
+        Bus::assertDispatched(LocalizeArtifacts::class);
     }
 }
