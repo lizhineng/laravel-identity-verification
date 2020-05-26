@@ -2,26 +2,31 @@
 
 namespace LiZhineng\IdentityVerification\Job;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Storage;
 use LiZhineng\IdentityVerification\Artifact;
 use LiZhineng\IdentityVerification\Exceptions\UnreachableUrl;
 use LiZhineng\IdentityVerification\IdentityVerification;
 
-class LocalizeArtifacts
+class LocalizeArtifacts implements ShouldQueue
 {
-    use Dispatchable;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
      * The model of identity verification.
      *
      * @var IdentityVerification $verification
      */
-    protected IdentityVerification $verification;
+    public IdentityVerification $verification;
 
     public function __construct(IdentityVerification $verification)
     {
         $this->verification = $verification;
+        $this->queue = config('identity-verification.queue');
     }
 
     public function handle()

@@ -1,4 +1,5 @@
 <?php
+
 return [
 
     /**
@@ -25,5 +26,10 @@ return [
      * The path which stores identity verification photos.
      */
     'path' => '/',
+
+    /**
+     * The queue which processing artifacts localization.
+     */
+    'queue' => 'default',
 
 ];

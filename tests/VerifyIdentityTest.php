@@ -3,6 +3,7 @@
 namespace LiZhineng\IdentityVerification\Tests;
 
 use Illuminate\Support\Facades\Bus;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use LiZhineng\IdentityVerification\Exceptions\OnlyDraftCanBeRecovered;
@@ -56,10 +57,16 @@ class VerifyIdentityTest extends FeatureTest
 
     public function testLocalizeArtifacts()
     {
-        Bus::fake();
+        $queue = config('identity-verification.queue');
 
-        $this->mockResponse()->verification()->verify();
+        Queue::fake();
 
-        Bus::assertDispatched(LocalizeArtifacts::class);
+        Queue::assertNothingPushed();
+
+        $verification = $this->mockResponse()->verification()->verify();
+
+        Queue::assertPushedOn($queue, LocalizeArtifacts::class, function ($job) use ($verification) {
+            return $job->verification->is($verification);
+        });
     }
 }
