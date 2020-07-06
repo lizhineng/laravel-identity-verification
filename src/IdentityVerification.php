@@ -69,4 +69,9 @@ class IdentityVerification extends Model
 
         return $verification;
     }
+
+    public function isPassed()
+    {
+        return $this->status === IdentityVerificationStatus::STATUS_PASSED;
+    }
 }

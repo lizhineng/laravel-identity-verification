@@ -32,4 +32,9 @@ return [
      */
     'queue' => 'default',
 
+    /**
+     * The default scene for user to verify their identity.
+     */
+    'scene' => 'registration',
+
 ];
